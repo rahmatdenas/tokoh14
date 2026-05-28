@@ -9,13 +9,12 @@ function doPreProcessing() {
 
 // Fungsi pembaca "Super JSON" (PENGGANTI SEMUA FUNGSI POPULATE)
 function loadPrimaryData() {
-  doPreProcessing(); // <-- Memanggil fungsi di atas
+  doPreProcessing();
 
   fetch('data-tokoh.json')
     .then(response => response.json())
     .then(data => {
       data.results.bindings.forEach(result => {
-        
         let qid = result.site.value.split('/').pop();
         if (!(qid in Records)) Records[qid] = new Record();
         let record = Records[qid];
@@ -47,18 +46,17 @@ function loadPrimaryData() {
            let jobs = result.pekerjaanList.value.split(',');
            jobs.forEach(jobUrl => {
                let jobQid = jobUrl.split('/').pop();
-               if (KAMUS_PEKERJAAN[jobQid]) {
-                   record.pekerjaan.add(KAMUS_PEKERJAAN[jobQid]);
-               }
+               if (KAMUS_PEKERJAAN[jobQid]) record.pekerjaan.add(KAMUS_PEKERJAAN[jobQid]);
            });
         }
 
-        // 6. Pemetaan Provinsi
+        // 6. KUNCI PROVINSI: Kita baca lagi dari JSON!
         if (result.provinsiLabel && record.tempatLahirQid) {
           PetaProvinsi[record.tempatLahirQid] = result.provinsiLabel.value;
         }
       });
 
+      // 7. Langsung bangun peta tanpa menunggu internet!
       BootstrapDataIsLoaded = true;
       buildDynamicIndices();
       populateMapAndIndex();
@@ -66,7 +64,7 @@ function loadPrimaryData() {
       enableApp();
     })
     .catch(error => {
-      console.error("Gagal membaca JSON lokal.", error);
+      console.error("Gagal membaca JSON lokal:", error);
     });
 }
 
