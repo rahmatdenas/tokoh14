@@ -149,12 +149,10 @@ function buildDynamicIndices() {
 
 // 4. Perenderan Peta & Marker, modifikasi dari wikisocph
 function populateMapAndIndex() {
-  let listIndex = document.getElementById('index-list');
-  let mapMarkers = [];
-
   Object.entries(Records).forEach(entry => {
     let qid = entry[0], record = entry[1];
 
+    // Hanya membuat marker, tidak merendernya ke peta dulu
     if (record.lat && record.lon) {
       let mapMarker = L.marker(
         [record.lat, record.lon],
@@ -166,18 +164,20 @@ function populateMapAndIndex() {
       let popup = mapMarker.getPopup();
       popup._qid = qid;
       record.popup = popup;
-
-      mapMarkers.push(mapMarker);
     }
 
+    // Hanya membuat elemen <li> di memori, TIDAK dimasukkan ke HTML dulu!
     let li = document.createElement('li');
     li.innerHTML = `<a href="#${qid}" id="idx-${qid}">${record.indexTitle}</a>`;
     record.indexLi = li;
-    if(listIndex) listIndex.appendChild(li);
   });
 
-  Cluster.addLayers(mapMarkers);
+  // Siapkan tombol-tombol filter
   generateFilterSelect();
+  
+  // PANGGIL MESIN UTAMA: Ini akan otomatis merender peta dan memuat 10/50 data pertama ke daftar
+  applyIntersectionFilter();
+  
   processHashChange();
 }
 
@@ -652,6 +652,30 @@ class Record {
     this.indexLi = undefined;
     this.areaTags = new Set();
   }
+}
+
+// Fungsi baru untuk memuat sebagian data ke DOM
+function renderNextChunk() {
+  let ol = document.getElementById('index-list');
+  if (!ol) return;
+
+  // Ambil potongan data dari array yang sudah difilter
+  let nextBatch = currentFilteredRecords.slice(currentRenderIndex, currentRenderIndex + CHUNK_SIZE);
+  
+  if (nextBatch.length === 0) return; // Hentikan jika data sudah habis
+
+  // Menggunakan DocumentFragment agar lebih cepat dan tidak membebani peramban
+  let fragment = document.createDocumentFragment();
+
+  nextBatch.forEach(record => {
+    if (record.indexLi) {
+      record.indexLi.style.display = ''; // Pastikan tidak tersembunyi
+      fragment.appendChild(record.indexLi);
+    }
+  });
+
+  ol.appendChild(fragment);
+  currentRenderIndex += CHUNK_SIZE; // Perbarui penanda indeks untuk scroll berikutnya
 }
 
 let scrollContainer = document.getElementById('index-container'); // Sesuaikan dengan ID kontainer scroll Anda di HTML
