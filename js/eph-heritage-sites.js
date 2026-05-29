@@ -569,6 +569,7 @@ if (pkjEl) {
         pkjEl.innerHTML = Array.from(record.pekerjaan).join(', ') + tautanSunting;
     }
 }
+        }
     })
     .catch(err => console.log("Gagal memuat API dari Wikidata", err));
 }
