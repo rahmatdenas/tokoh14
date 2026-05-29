@@ -2,7 +2,7 @@
 
 let currentFilterMode = 'union';
 let currentRegionFilter = 'all';
-let currentGenderFilter = 'all'; // <--- [BARU] Variabel untuk filter jenis kelamin
+let currentGenderFilter = 'all';
 let activePekerjaan = new Set();
 let PekerjaanButtons = {};
 
@@ -13,11 +13,10 @@ function doPreProcessing() {
   processHashChange();
 }
 
-// 2. Fungsi Pemuat Utama (Super Cepat dengan File Lokal)
+// 2. Fungsi Pemuat Utama
 function loadPrimaryData() {
   doPreProcessing();
 
-  // Membaca kedua file JSON secara serentak (paralel) agar sangat cepat
   Promise.all([
     fetch('peta-provinsi.json').then(res => {
         if (!res.ok) throw new Error("File 'peta-provinsi.json' tidak ditemukan.");
@@ -29,7 +28,6 @@ function loadPrimaryData() {
     })
   ])
   .then(([dataProvinsi, dataTokoh]) => {
-    // A. Menyusun kamus provinsi dari file yang baru Anda unduh
     if (dataProvinsi && dataProvinsi.results && dataProvinsi.results.bindings) {
        dataProvinsi.results.bindings.forEach(row => {
            if (row.tempatLahirQid && row.provinsiLabel) {
@@ -37,8 +35,6 @@ function loadPrimaryData() {
            }
        });
     }
-
-    // B. Mengeksekusi 21.000 data tokoh utama
     if (!dataTokoh || !dataTokoh.results || !dataTokoh.results.bindings) {
        throw new Error("Format JSON Tokoh salah!");
     }
@@ -90,14 +86,15 @@ function loadPrimaryData() {
       }
     });
 
-    // --- [BARU] PENCEGAT WILAYAH HISTORIS / KHUSUS ---
-    // Memaksa QID entitas khusus ini agar memiliki label valid & tidak terbuang ke "Luar Negeri"
-    // Penempatannya di sini memastikan data kotor dari Wikidata akan tertimpa secara permanen.
+    // Memasukkan butir tempat lahir selian provinsi/wilayah historis Indonesia lainnya ---
+    // Tujuannya agar tidak terbuang ke "Luar Negeri"
     PetaProvinsi['Q252'] = 'Indonesia (Umum)';
     PetaProvinsi['Q188161'] = 'Hindia Belanda';
+    PetaProvinsi['Q3492'] = 'Sumatera';
+    PetaProvinsi['Q3757'] = 'Jawa';
+    PetaProvinsi['Q3812'] = 'Sulawesi';
     // -------------------------------------------------
 
-    // C. Data selesai, bangun peta dan matikan layar loading
     BootstrapDataIsLoaded = true;
     buildDynamicIndices();
     populateMapAndIndex();
@@ -110,7 +107,7 @@ function loadPrimaryData() {
   });
 }
 
-// 4. Pembangun Indeks
+// 3. Pembangun Indeks
 function buildDynamicIndices() {
   BirthplaceIndex = { all: new IndexEntry() };
   PekerjaanIndex = { all: new IndexEntry() };
@@ -143,7 +140,7 @@ function buildDynamicIndices() {
   });
 }
 
-// 5. Perenderan Peta & Marker
+// 4. Perenderan Peta & Marker, modifikasi dari wikisocph
 function populateMapAndIndex() {
   let listIndex = document.getElementById('index-list');
   let mapMarkers = [];
@@ -177,10 +174,10 @@ function populateMapAndIndex() {
   processHashChange();
 }
 
-// 6. Pembuat Filter Dinamis UI
+// 5. Filter Tokoh Indonesia oleh Denas
 function generateFilterSelect() {
   let selectRegion = document.getElementById('filter-region');
-  let selectGender = document.getElementById('filter-gender'); // <--- [BARU] Menangkap elemen select gender
+  let selectGender = document.getElementById('filter-gender');
   let containerPekerjaan = document.getElementById('filter-pekerjaan-buttons');
   let btnAllPekerjaan = document.getElementById('btn-all-pekerjaan');
 
@@ -216,7 +213,6 @@ let sortedRegions = Object.keys(BirthplaceIndex)
     });
   }
 
-  // <--- [BARU] Event Listener untuk Filter Jenis Kelamin
   if(selectGender) {
     selectGender.addEventListener('change', function() {
       currentGenderFilter = this.value;
@@ -285,13 +281,12 @@ let sortedRegions = Object.keys(BirthplaceIndex)
     });
   }
 }
-// 7. Kalkulator Tombol Angka (Dinamis)
+// 6. Kalkulator Tombol Angka oleh Denas
 function updateFeatureCounts() {
   let selectRegion = document.getElementById('filter-region');
   let selectGender = document.getElementById('filter-gender');
   let modeSelect = document.getElementById('filter-mode-select');
 
-  // BACA LANGSUNG DARI DOM
   let activeRegion = selectRegion ? selectRegion.value : 'all';
   let activeGender = selectGender ? selectGender.value : 'all';
   let activeMode = modeSelect ? modeSelect.value : 'union';
@@ -395,9 +390,9 @@ function updateFeatureCounts() {
   }
 }
 
-// 8. Mesin Eksekutor Gabungan/Irisan
+// 7. Mesin Eksekutor Gabungan/Irisan oleh Denas
 function applyIntersectionFilter() {
-  // BACA LANGSUNG DARI DOM
+  
   let selectRegion = document.getElementById('filter-region');
   let selectGender = document.getElementById('filter-gender');
   let modeSelect = document.getElementById('filter-mode-select');
@@ -431,7 +426,7 @@ function applyIntersectionFilter() {
       }
     }
 
-    // Hanya merender yang benar-benar lolos TIGA filter di atas
+    // Hanya merender yang benar-benar lolos tiga filter di atas oleh Denas
     return matchRegion && matchGender && matchPekerjaan;
   }).sort((a, b) => {
     return a.indexTitle.localeCompare(b.indexTitle);
@@ -451,7 +446,7 @@ function applyIntersectionFilter() {
   }
 }
 
-// 10. Live Fetch Profil & Wikipedia dari Wikidata
+// 8. Live Fetch Profil & Wikipedia dari Wikidata, modifikasi dari wikisocph
 function generateRecordDetails(qid) {
   let record = Records[qid];
 
@@ -521,7 +516,7 @@ function generateRecordDetails(qid) {
     .catch(err => console.log("Gagal memuat API dari Wikidata", err));
 }
 
-// 11. Penarik Artikel Wikipedia
+// 9. Penarik Artikel Wikipedia, modifikasi dari wikisocph
 function displayArticleExtract(title, elem) {
   let apiUrl = `https://id.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=1&redirects=true&titles=${encodeURIComponent(title)}&origin=*`;
 
@@ -557,7 +552,7 @@ function displayArticleExtract(title, elem) {
     });
 }
 
-// 12. Kelas Struktur Data
+// 10. Kelas Struktur Data
 class IndexEntry {
   constructor() {
     this.label = '';
