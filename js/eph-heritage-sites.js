@@ -1,6 +1,6 @@
 'use strict';
 
-const CHUNK_SIZE = 50;
+const CHUNK_SIZE = 10;
 let currentRenderIndex = 0;
 let currentFilteredRecords = [];
 let currentFilterMode = 'intersection';
@@ -442,7 +442,7 @@ function applyIntersectionFilter() {
   if(ol) ol.innerHTML = '';
   currentRenderIndex = 0;
 
-  // Panggil fungsi untuk merender 50 data pertama
+  // Panggil fungsi untuk merender 10 data pertama
   renderNextChunk();
 
   // Untuk Peta Leaflet (MarkerCluster tetap aman menerima banyak data sekaligus)
@@ -602,7 +602,7 @@ function displayArticleExtract(title, elem) {
 
       if (extract) {
           let paragraphs = extract.match(/<p[^>]*>[\s\S]*?<\/p>/g);
-          let validText = paragraphs ? paragraphs.find(text => text.length > 50) : extract;
+          let validText = paragraphs ? paragraphs.find(text => text.length > 10) : extract;
           if (!validText) validText = extract;
 
           elem.innerHTML = validText +
