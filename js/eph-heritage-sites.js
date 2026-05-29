@@ -1,6 +1,6 @@
 'use strict';
 
-let currentFilterMode = 'union';
+let currentFilterMode = 'intersection';
 let currentRegionFilter = 'all';
 let currentGenderFilter = 'all';
 let activePekerjaan = new Set();
@@ -293,7 +293,7 @@ function updateFeatureCounts() {
 
   let activeRegion = selectRegion ? selectRegion.value : 'all';
   let activeGender = selectGender ? selectGender.value : 'all';
-  let activeMode = modeSelect ? modeSelect.value : 'union';
+  let activeMode = modeSelect ? modeSelect.value : 'intersection';
 
   let totalUnion = 0;
   let totalIntersection = 0;
@@ -388,9 +388,9 @@ function updateFeatureCounts() {
   let btnAllPekerjaan = document.getElementById('btn-all-pekerjaan');
   if (btnAllPekerjaan) btnAllPekerjaan.style.order = 0;
 
-  if (modeSelect) {
-    modeSelect.options[0].textContent = `Tampilkan Gabungan – ${totalUnion} Tokoh`;
-    modeSelect.options[1].textContent = `Hanya Irisan – ${totalIntersection} Tokoh (pilih min. 2 pekerjaan)`;
+if (modeSelect) {
+    modeSelect.options[0].textContent = `Hanya Irisan – ${totalIntersection} Tokoh (pilih min. 2 pekerjaan)`;
+    modeSelect.options[1].textContent = `Tampilkan Gabungan – ${totalUnion} Tokoh`;
   }
 }
 
@@ -403,7 +403,7 @@ function applyIntersectionFilter() {
 
   let activeRegion = selectRegion ? selectRegion.value : 'all';
   let activeGender = selectGender ? selectGender.value : 'all';
-  let activeMode = modeSelect ? modeSelect.value : 'union';
+  let activeMode = modeSelect ? modeSelect.value : 'intersection';
 
   Cluster.clearLayers();
   let ol = document.getElementById('index-list');
