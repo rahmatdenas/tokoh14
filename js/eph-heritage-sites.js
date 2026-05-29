@@ -299,7 +299,7 @@ function updateFeatureCounts() {
   let totalIntersection = 0;
   let tempJobCounts = {};
   let tempRegionCounts = { 'all': 0, 'indonesia_only': 0 };
-  let tempGenderCounts = { 'all': 0, 'Laki-laki': 0, 'Perempuan': 0 };
+  let tempGenderCounts = { 'all': 0, 'laki-laki': 0, 'perempuan': 0 };
 
   Object.keys(PekerjaanIndex).forEach(pkj => { if (pkj !== 'all') tempJobCounts[pkj] = 0; });
   Object.keys(BirthplaceIndex).forEach(region => { if (region !== 'all') tempRegionCounts[region] = 0; });
@@ -346,8 +346,8 @@ function updateFeatureCounts() {
 
     if (matchRegion && matchPekerjaan) {
       tempGenderCounts['all']++;
-      if (record.jenisKelamin === 'Laki-laki') tempGenderCounts['Laki-laki']++;
-      if (record.jenisKelamin === 'Perempuan') tempGenderCounts['Perempuan']++;
+      if (record.jenisKelamin === 'laki-laki') tempGenderCounts['laki-laki']++;
+      if (record.jenisKelamin === 'perempuan') tempGenderCounts['perempuan']++;
     }
   });
 
@@ -389,7 +389,7 @@ function updateFeatureCounts() {
   if (btnAllPekerjaan) btnAllPekerjaan.style.order = 0;
 
   if (modeSelect) {
-    modeSelect.options[0].textContent = `Tampilkan Semua – ${totalUnion} Tokoh`;
+    modeSelect.options[0].textContent = `Tampilkan Gabungan – ${totalUnion} Tokoh`;
     modeSelect.options[1].textContent = `Hanya Irisan – ${totalIntersection} Tokoh (pilih min. 2 pekerjaan)`;
   }
 }
