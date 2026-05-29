@@ -1,5 +1,8 @@
 'use strict';
 
+const CHUNK_SIZE = 50;
+let currentRenderIndex = 0;
+let currentFilteredRecords = [];
 let currentFilterMode = 'intersection';
 let currentRegionFilter = 'all';
 let currentGenderFilter = 'all';
@@ -394,24 +397,20 @@ if (modeSelect) {
   }
 }
 
-// 7. Mesin Eksekutor Gabungan/Irisan oleh Denas
+// 7. Mesin Eksekutor Gabungan/Irisan (Diperbarui untuk Infinite Scroll)
 function applyIntersectionFilter() {
-  
   let selectRegion = document.getElementById('filter-region');
   let selectGender = document.getElementById('filter-gender');
   let modeSelect = document.getElementById('filter-mode-select');
+  let searchInput = document.getElementById('search-tokoh');
 
   let activeRegion = selectRegion ? selectRegion.value : 'all';
   let activeGender = selectGender ? selectGender.value : 'all';
   let activeMode = modeSelect ? modeSelect.value : 'intersection';
+  let keywordCari = searchInput ? searchInput.value.toLowerCase() : '';
 
-  Cluster.clearLayers();
-  let ol = document.getElementById('index-list');
-  if(ol) ol.innerHTML = '';
-
-  let validMarkers = [];
-
-  let validRecords = Object.values(Records).filter(record => {
+  // Filter Data Array Mentah
+  currentFilteredRecords = Object.values(Records).filter(record => {
     let matchRegion = false;
     if (activeRegion === 'all') matchRegion = true;
     else if (activeRegion === 'indonesia_only') matchRegion = !record.areaTags.has('Luar Negeri');
@@ -430,30 +429,26 @@ function applyIntersectionFilter() {
       }
     }
 
-    // Hanya merender yang benar-benar lolos tiga filter di atas oleh Denas
-    return matchRegion && matchGender && matchPekerjaan;
+    // Filter Pencarian Teks dimasukkan ke sini
+    let matchSearch = keywordCari === '' || record.indexTitle.toLowerCase().includes(keywordCari);
+
+    return matchRegion && matchGender && matchPekerjaan && matchSearch;
   }).sort((a, b) => {
     return a.indexTitle.localeCompare(b.indexTitle);
   });
 
-let searchInput = document.getElementById('search-tokoh');
-  let keywordCari = searchInput ? searchInput.value.toLowerCase() : '';
+  // Bersihkan DOM dan Reset Indeks Render
+  let ol = document.getElementById('index-list');
+  if(ol) ol.innerHTML = '';
+  currentRenderIndex = 0;
 
-  validRecords.forEach(record => {
-    if (record.mapMarker) validMarkers.push(record.mapMarker);
-    
-    if (record.indexLi && ol) {
-        // Terapkan filter pencarian teks saat indeks dirakit ulang
-        if (keywordCari === '' || record.indexTitle.toLowerCase().includes(keywordCari)) {
-            record.indexLi.style.display = '';
-        } else {
-            record.indexLi.style.display = 'none';
-        }
-        
-        ol.appendChild(record.indexLi);
-    }
-  });
+  // Panggil fungsi untuk merender 50 data pertama
+  renderNextChunk();
 
+  // Untuk Peta Leaflet (MarkerCluster tetap aman menerima banyak data sekaligus)
+  Cluster.clearLayers();
+  let validMarkers = currentFilteredRecords.map(r => r.mapMarker).filter(m => m !== undefined);
+  
   if (validMarkers.length > 0) {
     Cluster.addLayers(validMarkers);
     let bounds = Cluster.getBounds();
@@ -467,17 +462,7 @@ let searchInput = document.getElementById('search-tokoh');
 let inputPencarian = document.getElementById('search-tokoh');
 if (inputPencarian) {
   inputPencarian.addEventListener('input', function() {
-    let keyword = this.value.toLowerCase();
-    let daftarLi = document.querySelectorAll('#index-list li');
-
-    daftarLi.forEach(li => {
-      let namaTokoh = li.textContent.toLowerCase();
-      if (namaTokoh.includes(keyword)) {
-        li.style.display = '';
-      } else {
-        li.style.display = 'none';
-      }
-    });
+    applyIntersectionFilter(); 
   });
 }
 
@@ -667,4 +652,15 @@ class Record {
     this.indexLi = undefined;
     this.areaTags = new Set();
   }
+}
+
+let scrollContainer = document.getElementById('index-container'); // Sesuaikan dengan ID kontainer scroll Anda di HTML
+
+if (scrollContainer) {
+  scrollContainer.addEventListener('scroll', function() {
+    // Jika posisi scroll + tinggi layar >= total tinggi konten (dikurangi 10px sebagai toleransi)
+    if (this.scrollTop + this.clientHeight >= this.scrollHeight - 10) {
+      renderNextChunk();
+    }
+  });
 }
