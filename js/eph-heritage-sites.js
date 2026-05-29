@@ -560,12 +560,15 @@ function generateRecordDetails(qid) {
                 }
             });
 
-            let pkjEl = panelElem.querySelector(`#pekerjaan-${qid}`);
-            if (pkjEl && daftarLabelPekerjaan.length > 0) {
-                const formatter = new Intl.ListFormat('id-ID', { style: 'long', type: 'conjunction' });
-                pkjEl.textContent = formatter.format(daftarLabelPekerjaan);
-            } else if (pkjEl) {
-                pkjEl.textContent = Array.from(record.pekerjaan).join(', ');
+  let pkjEl = panelElem.querySelector(`#pekerjaan-${qid}`);
+            if (pkjEl) {
+                let tautanSunting = ` <a href="https://www.wikidata.org/wiki/${qid}#P106" target="_blank" style="font-size: 0.85em; text-decoration: none;" title="Sunting pekerjaan di Wikidata">[sunting]</a>`;
+                 if (daftarLabelPekerjaan.length > 0) {
+                    const formatter = new Intl.ListFormat('id-ID', { style: 'long', type: 'conjunction' });
+                    pkjEl.innerHTML = formatter.format(daftarLabelPekerjaan) + tautanSunting;
+                } else {
+                    pkjEl.innerHTML = Array.from(record.pekerjaan).join(', ') + tautanSunting;
+                }
             }
         }
     })
