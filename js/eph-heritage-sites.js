@@ -459,15 +459,12 @@ function generateRecordDetails(qid) {
 
   let articleHtml = '<div class="article main-text loading"><div class="loader"></div></div>';
 
-  let infoHtml = '<h2>Informasi Profil</h2><ul class="designations">';
-  
-  // LANGKAH 1: Tempat gambar lokasi (container)
-  infoHtml += `<li>
-      <p><strong>Tempat Lahir:</strong> <span id="lokasi-${qid}">Memuat lokasi...</span> (${record.provinsiLabel})</p>
-      <div id="img-lokasi-${qid}" class="lokasi-img-container"></div>
-  </li>`;
+  let infoHtml = '<h2>Informasi Profil</h2>';
+  infoHtml += `<div id="img-lokasi-${qid}" class="lokasi-img-container"></div>`;
+  infoHtml += '<ul class="designations">';
+  infoHtml += `<li><p><strong>Tempat lahir:</strong> <span id="lokasi-${qid}">Memuat lokasi...</span> (${record.provinsiLabel})</p></li>`;
 
-  if (record.jenisKelamin) infoHtml += `<li><p><strong>Jenis Kelamin:</strong> ${record.jenisKelamin}</p></li>`;
+  if (record.jenisKelamin) infoHtml += `<li><p><strong>Jenis kelamin:</strong> ${record.jenisKelamin}</p></li>`;
 
   if (record.pekerjaanQids && record.pekerjaanQids.size > 0) {
     infoHtml += `<li><p><strong>Pekerjaan:</strong> <span id="pekerjaan-${qid}">Memuat pekerjaan...</span></p></li>`;
